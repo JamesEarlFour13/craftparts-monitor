@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun add:*)",
+      "Bash(bunx shadcn@latest add pagination --yes)",
+      "Bash(bunx shadcn@latest add input --yes)"
+    ]
+  }
+}
