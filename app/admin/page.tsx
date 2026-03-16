@@ -18,9 +18,12 @@ export default function AdminPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="mx-auto max-w-7xl text-muted-foreground">
-          Loading...
+      <div className="min-h-[calc(100vh-4rem)] bg-background px-6 py-8 sm:px-8">
+        <div className="mx-auto max-w-7xl flex items-center justify-center py-20 text-muted-foreground">
+          <div className="flex flex-col items-center gap-3">
+            <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="text-sm">Loading...</span>
+          </div>
         </div>
       </div>
     );
@@ -31,7 +34,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-[calc(100vh-4rem)] bg-background px-6 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <UserManagementTable />
       </div>

@@ -22,7 +22,8 @@
       "WebFetch(domain:github.com)",
       "Bash(bun -e \"import { hashPassword, verifyPassword } from ''better-auth/crypto''; const h = await hashPassword\\(''test123''\\); console.log\\(''hash:'', h\\); const ok = await verifyPassword\\({password: ''test123'', hash: h}\\); console.log\\(''verify:'', ok\\);\")",
       "Bash(timeout 15 bun dev)",
-      "Bash(bun -e \":*)"
+      "Bash(bun -e \":*)",
+      "WebFetch(domain:www.craftparts.com)"
     ],
     "additionalDirectories": [
       "/home/desig/code/clients/four13/craftparts-monitor/app/api/auth/[...all]"

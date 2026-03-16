@@ -16,15 +16,15 @@ import { cn } from "@/lib/utils";
 function statusColor(status: string) {
   switch (status.toLowerCase()) {
     case "processed":
-      return "bg-green-500";
+      return "bg-primary";
     case "prepared":
-      return "bg-yellow-500";
+      return "bg-amber-500";
     case "failed":
-      return "bg-orange-700";
+      return "bg-orange-600";
     case "aborted":
-      return "bg-red-600";
+      return "bg-destructive";
     default:
-      return "bg-neutral-400";
+      return "bg-muted-foreground/50";
   }
 }
 
@@ -35,7 +35,6 @@ function statusVariant(status: string) {
     case "prepared":
       return "secondary" as const;
     case "failed":
-      return "destructive" as const;
     case "aborted":
       return "destructive" as const;
     default:
@@ -81,7 +80,6 @@ export function SyncHistoryModal({
 
   useEffect(() => {
     if (records && records.length > 0) {
-      // Delay to ensure the dialog content is rendered
       requestAnimationFrame(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
@@ -98,33 +96,39 @@ export function SyncHistoryModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>{externDescription}</DialogTitle>
+          <DialogTitle className="text-lg">{externDescription}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
-            Loading timeline...
+          <div className="flex items-center justify-center py-16 text-muted-foreground">
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <span className="text-sm">Loading timeline...</span>
+            </div>
           </div>
         ) : (
           <>
-            {/* Horizontal Timeline */}
+            {/* Timeline */}
             <div ref={scrollRef} className="w-full overflow-x-auto">
-              <div className="flex items-center gap-0 px-2 py-4 w-max">
+              <div className="flex items-stretch gap-0 px-1 py-3 w-max">
                 {records?.map((record, i) => (
                   <div key={record.id} className="flex items-center">
                     <button
                       onClick={() => setSelectedRecord(record)}
                       className={cn(
-                        "flex flex-col items-center gap-1.5 rounded-xl border p-3 min-w-35 transition-colors",
+                        "flex flex-col items-center gap-2 rounded-xl border px-4 py-3 min-w-36 transition-all",
                         displayRecord?.id === record.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50 hover:bg-muted/50",
+                          ? "border-primary bg-primary/8 shadow-sm ring-1 ring-primary/20"
+                          : "border-border/60 hover:border-primary/40 hover:bg-muted/60",
                       )}
                     >
                       <div
                         className={cn(
-                          "size-2.5 rounded-full",
+                          "size-2.5 rounded-full ring-2 ring-offset-2 ring-offset-card",
                           statusColor(record.status),
+                          displayRecord?.id === record.id
+                            ? "ring-primary/30"
+                            : "ring-transparent",
                         )}
                       />
                       <span className="text-xs font-medium">
@@ -136,24 +140,24 @@ export function SyncHistoryModal({
                       >
                         {record.status}
                       </Badge>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-muted-foreground tabular-nums">
                         {formatTimestamp(record.updated_at)}
                       </span>
                     </button>
 
                     {i < (records?.length ?? 0) - 1 && (
-                      <div className="h-px w-6 bg-border shrink-0" />
+                      <div className="h-px w-5 bg-border shrink-0" />
                     )}
                   </div>
                 ))}
               </div>
             </div>
 
-            <Separator />
+            <Separator className="opacity-60" />
 
             {/* Detail Panel */}
             {displayRecord ? (
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm py-1">
                 {DETAIL_FIELDS.map(({ key, label }) => {
                   const value = displayRecord[key];
                   const isError = key === "last_error_message";
@@ -162,14 +166,16 @@ export function SyncHistoryModal({
 
                   return (
                     <div key={key} className={isError ? "col-span-2" : ""}>
-                      <dt className="text-xs text-muted-foreground mb-0.5">
+                      <dt className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
                         {label}
                       </dt>
                       <dd
                         className={cn(
+                          "text-foreground",
                           isError && value
-                            ? "font-mono text-xs bg-destructive/5 text-destructive p-2 rounded-md"
+                            ? "font-mono text-xs bg-destructive/8 text-destructive p-3 rounded-lg border border-destructive/15"
                             : "",
+                          isTimestamp ? "tabular-nums" : "",
                         )}
                       >
                         {value == null || value === ""
@@ -183,7 +189,7 @@ export function SyncHistoryModal({
                 })}
               </div>
             ) : (
-              <div className="text-center text-muted-foreground py-8">
+              <div className="text-center text-muted-foreground py-12">
                 Select a timeline entry to view details
               </div>
             )}

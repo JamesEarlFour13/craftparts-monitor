@@ -87,7 +87,7 @@ function CreateUserDialog({ currentRole }: { currentRole: string }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -160,15 +160,15 @@ function UserRow({
   const userRole = user.role ?? "viewer";
 
   return (
-    <TableRow>
+    <TableRow className="transition-colors hover:bg-primary/5">
       <TableCell className="font-medium">{user.name}</TableCell>
-      <TableCell>{user.email}</TableCell>
+      <TableCell className="text-muted-foreground">{user.email}</TableCell>
       <TableCell>
-        <Badge variant={roleBadgeVariant(user.role)}>
+        <Badge variant={roleBadgeVariant(user.role)} className="capitalize">
           {userRole}
         </Badge>
       </TableCell>
-      <TableCell className="text-muted-foreground">
+      <TableCell className="text-muted-foreground tabular-nums">
         {new Date(user.createdAt).toLocaleDateString()}
       </TableCell>
       <TableCell>
@@ -216,26 +216,38 @@ export function UserManagementTable() {
   const currentUserId = session?.user.id ?? "";
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Loading users...</div>;
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <span className="text-sm">Loading users...</span>
+        </div>
+      </div>
+    );
   }
 
   const users = data?.users ?? [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">User Management</h2>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">User Management</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manage user accounts and roles
+          </p>
+        </div>
         <CreateUserDialog currentRole={currentRole} />
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Actions</TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Email</TableHead>
+              <TableHead className="font-semibold">Role</TableHead>
+              <TableHead className="font-semibold">Created</TableHead>
+              <TableHead className="font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -249,7 +261,7 @@ export function UserManagementTable() {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                   No users found
                 </TableCell>
               </TableRow>
