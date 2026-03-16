@@ -3,7 +3,29 @@
     "allow": [
       "Bash(bun add:*)",
       "Bash(bunx shadcn@latest add pagination --yes)",
-      "Bash(bunx shadcn@latest add input --yes)"
+      "Bash(bunx shadcn@latest add input --yes)",
+      "Bash(find /home/desig/code/clients/four13/craftparts-monitor -type f -name drizzle.config.* -o -name .env*)",
+      "Bash(find /home/desig/code/clients/four13/craftparts-monitor/app/api -type f -name *.ts -o -name *.js)",
+      "Bash(grep -r \"auth\\\\|middleware\\\\|clerk\\\\|nextauth\" /home/desig/code/clients/four13/craftparts-monitor --include=*.ts --include=*.tsx)",
+      "Read(//home/desig/code/clients/four13/craftparts-monitor/**)",
+      "Bash(find /home/desig/code/clients/four13/craftparts-monitor -maxdepth 3 -not -path */node_modules/* -not -path */.next/* -type f)",
+      "WebFetch(domain:www.better-auth.com)",
+      "Bash(bunx drizzle-kit:*)",
+      "Bash(source .env.local)",
+      "Bash(export DATABASE_URL='postgresql://neondb_owner:npg_uaM5QYnGl7Vt@ep-polished-heart-ahosc5bm-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')",
+      "Bash(export BETTER_AUTH_SECRET='mWztI4XkOMg2WVhk69cVwp9CTYmNzTXe9mnZIxbGDj8=')",
+      "Bash(export BETTER_AUTH_URL='http://localhost:3000')",
+      "Bash(bunx @better-auth/cli generate --config lib/auth.ts --output lib/db/auth-schema.ts)",
+      "Bash(bunx shadcn@latest add label card select --yes)",
+      "Bash(npx next:*)",
+      "WebFetch(domain:better-auth.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(bun -e \"import { hashPassword, verifyPassword } from ''better-auth/crypto''; const h = await hashPassword\\(''test123''\\); console.log\\(''hash:'', h\\); const ok = await verifyPassword\\({password: ''test123'', hash: h}\\); console.log\\(''verify:'', ok\\);\")",
+      "Bash(timeout 15 bun dev)",
+      "Bash(bun -e \":*)"
+    ],
+    "additionalDirectories": [
+      "/home/desig/code/clients/four13/craftparts-monitor/app/api/auth/[...all]"
     ]
   }
 }

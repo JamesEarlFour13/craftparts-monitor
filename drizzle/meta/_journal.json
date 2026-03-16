@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1773668315934,
+      "tag": "0000_groovy_stingray",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773668628748,
+      "tag": "0001_past_mathemanic",
+      "breakpoints": true
+    }
+  ]
+}

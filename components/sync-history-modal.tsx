@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SyncHistoryRecord } from "@/lib/types";
 import { useSyncTimeline } from "@/lib/api";
 import {
@@ -9,18 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 function statusColor(status: string) {
   switch (status.toLowerCase()) {
-    case "success":
+    case "processed":
       return "bg-green-500";
-    case "error":
+    case "prepared":
+      return "bg-yellow-500";
     case "failed":
-      return "bg-red-500";
+      return "bg-orange-700";
+    case "aborted":
+      return "bg-red-600";
     default:
       return "bg-neutral-400";
   }
@@ -28,10 +30,13 @@ function statusColor(status: string) {
 
 function statusVariant(status: string) {
   switch (status.toLowerCase()) {
-    case "success":
+    case "processed":
       return "default" as const;
-    case "error":
+    case "prepared":
+      return "secondary" as const;
     case "failed":
+      return "destructive" as const;
+    case "aborted":
       return "destructive" as const;
     default:
       return "secondary" as const;
@@ -68,15 +73,26 @@ export function SyncHistoryModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { data: records, isLoading } = useSyncTimeline(
-    externDescription,
-    open
-  );
+  const { data: records, isLoading } = useSyncTimeline(externDescription, open);
   const [selectedRecord, setSelectedRecord] =
     useState<SyncHistoryRecord | null>(null);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (records && records.length > 0) {
+      // Delay to ensure the dialog content is rendered
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+        }
+      });
+    }
+  }, [records]);
+
   const displayRecord =
-    selectedRecord ?? (records && records.length > 0 ? records[0] : null);
+    selectedRecord ??
+    (records && records.length > 0 ? records[records.length - 1] : null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,23 +108,23 @@ export function SyncHistoryModal({
         ) : (
           <>
             {/* Horizontal Timeline */}
-            <ScrollArea className="w-full">
-              <div className="flex items-center gap-0 px-2 py-4">
+            <div ref={scrollRef} className="w-full overflow-x-auto">
+              <div className="flex items-center gap-0 px-2 py-4 w-max">
                 {records?.map((record, i) => (
                   <div key={record.id} className="flex items-center">
                     <button
                       onClick={() => setSelectedRecord(record)}
                       className={cn(
-                        "flex flex-col items-center gap-1.5 rounded-xl border p-3 min-w-[140px] transition-colors",
+                        "flex flex-col items-center gap-1.5 rounded-xl border p-3 min-w-35 transition-colors",
                         displayRecord?.id === record.id
                           ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50",
                       )}
                     >
                       <div
                         className={cn(
                           "size-2.5 rounded-full",
-                          statusColor(record.status)
+                          statusColor(record.status),
                         )}
                       />
                       <span className="text-xs font-medium">
@@ -131,8 +147,7 @@ export function SyncHistoryModal({
                   </div>
                 ))}
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
 
             <Separator />
 
@@ -154,10 +169,10 @@ export function SyncHistoryModal({
                         className={cn(
                           isError && value
                             ? "font-mono text-xs bg-destructive/5 text-destructive p-2 rounded-md"
-                            : ""
+                            : "",
                         )}
                       >
-                        {value === null || value === ""
+                        {value == null || value === ""
                           ? "—"
                           : isTimestamp
                             ? formatTimestamp(String(value))

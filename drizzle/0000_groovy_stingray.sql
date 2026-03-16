@@ -1,0 +1,2 @@
+-- Current sql file was generated after introspecting the database
+-- Tables already exist, no migration needed
