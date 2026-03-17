@@ -1,4 +1,4 @@
-import { pgTable, unique, uuid, text, timestamp, serial, varchar, integer } from "drizzle-orm/pg-core";
+import { pgTable, unique, uuid, text, timestamp, serial, varchar, integer, boolean } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const craftpartsSyncHistory = pgTable("craftparts_sync_history", {
@@ -43,6 +43,21 @@ export const tblAcBcCustPriceClassUnderscore = pgTable("tbl_ac_bc_custPriceClass
 }, (table) => [
   unique("pre").on(table.email),
 ]);
+
+export const notificationRecipients = pgTable("notification_recipients", {
+  id: serial().primaryKey().notNull(),
+  email: varchar({ length: 255 }).notNull(),
+  name: varchar({ length: 255 }).default(''),
+  active: boolean().default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
+});
+
+export const appSettings = pgTable("app_settings", {
+  key: varchar({ length: 255 }).primaryKey().notNull(),
+  value: text().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
+});
 
 export const lastExecutionOfFlows = pgTable("last_execution_of_flows", {
   flowKey: text("flow_key").primaryKey().notNull(),

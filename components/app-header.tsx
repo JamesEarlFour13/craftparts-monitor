@@ -46,16 +46,28 @@ export function AppHeader() {
               Sync History
             </Link>
             {canManageUsers(role) && (
-              <Link
-                href="/admin"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  pathname === "/admin"
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                Users
-              </Link>
+              <>
+                <Link
+                  href="/admin"
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    pathname === "/admin"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Users
+                </Link>
+                <Link
+                  href="/settings"
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    pathname === "/settings"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Settings
+                </Link>
+              </>
             )}
           </nav>
         </div>
