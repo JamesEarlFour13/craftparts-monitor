@@ -1,53 +1,53 @@
 name: Deploy
 
-  on:
-    push:
-      branches:
-        - main
+on:
+  push:
+    branches:
+      - main
 
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Load secrets from 1Password
-          uses: 1password/load-secrets-action@v2
-          with:
-            export-env: true
-          env:
-            OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-            CAPROVER_SERVER: op://your-vault/craftparts-monitor-dev/caprover-server
-            CAPROVER_APP: op://your-vault/craftparts-monitor-dev/caprover-app
-            CAPROVER_TOKEN: op://your-vault/craftparts-monitor-dev/caprover-token
-            DATABASE_URL: op://your-vault/craftparts-monitor-dev/database-url
-            BETTER_AUTH_SECRET: op://your-vault/craftparts-monitor-dev/better-auth-secret
-            BETTER_AUTH_URL: op://your-vault/craftparts-monitor-dev/better-auth-url
-            SUPERADMIN_EMAIL: op://your-vault/craftparts-monitor-dev/superadmin-email
-            SUPERADMIN_PASSWORD: op://your-vault/craftparts-monitor-dev/superadmin-password
-            CRON_SECRET: op://your-vault/craftparts-monitor-dev/cron-secret
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CAPROVER_SERVER: op://your-vault/craftparts-monitor-dev/caprover-server
+          CAPROVER_APP: op://your-vault/craftparts-monitor-dev/caprover-app
+          CAPROVER_TOKEN: op://your-vault/craftparts-monitor-dev/caprover-token
+          DATABASE_URL: op://your-vault/craftparts-monitor-dev/database-url
+          BETTER_AUTH_SECRET: op://your-vault/craftparts-monitor-dev/better-auth-secret
+          BETTER_AUTH_URL: op://your-vault/craftparts-monitor-dev/better-auth-url
+          SUPERADMIN_EMAIL: op://your-vault/craftparts-monitor-dev/superadmin-email
+          SUPERADMIN_PASSWORD: op://your-vault/craftparts-monitor-dev/superadmin-password
+          CRON_SECRET: op://your-vault/craftparts-monitor-dev/cron-secret
 
-        - name: Update CapRover env vars
-          run: |
-            curl -s -X POST \
-              "$CAPROVER_SERVER/api/v2/user/apps/appDefinitions/update" \
-              -H "x-captain-auth: $CAPROVER_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "appName": "'"$CAPROVER_APP"'",
-                "envVars": [
-                  {"key": "DATABASE_URL", "value": "'"$DATABASE_URL"'"},
-                  {"key": "BETTER_AUTH_SECRET", "value": "'"$BETTER_AUTH_SECRET"'"},
-                  {"key": "BETTER_AUTH_URL", "value": "'"$BETTER_AUTH_URL"'"},
-                  {"key": "SUPERADMIN_EMAIL", "value": "'"$SUPERADMIN_EMAIL"'"},
-                  {"key": "SUPERADMIN_PASSWORD", "value": "'"$SUPERADMIN_PASSWORD"'"},
-                  {"key": "CRON_SECRET", "value": "'"$CRON_SECRET"'"}
-                ]
-              }'
+      - name: Update CapRover env vars
+        run: |
+          curl -s -X POST \
+            "$CAPROVER_SERVER/api/v2/user/apps/appDefinitions/update" \
+            -H "x-captain-auth: $CAPROVER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "appName": "'"$CAPROVER_APP"'",
+              "envVars": [
+                {"key": "DATABASE_URL", "value": "'"$DATABASE_URL"'"},
+                {"key": "BETTER_AUTH_SECRET", "value": "'"$BETTER_AUTH_SECRET"'"},
+                {"key": "BETTER_AUTH_URL", "value": "'"$BETTER_AUTH_URL"'"},
+                {"key": "SUPERADMIN_EMAIL", "value": "'"$SUPERADMIN_EMAIL"'"},
+                {"key": "SUPERADMIN_PASSWORD", "value": "'"$SUPERADMIN_PASSWORD"'"},
+                {"key": "CRON_SECRET", "value": "'"$CRON_SECRET"'"}
+              ]
+            }'
 
-        - name: Deploy to CapRover
-          uses: caprover/deploy-from-github@v1.1.2
-          with:
-            server: ${{ env.CAPROVER_SERVER }}
-            app: ${{ env.CAPROVER_APP }}
-            token: ${{ env.CAPROVER_TOKEN }}
+      - name: Deploy to CapRover
+        uses: caprover/deploy-from-github@v1.1.2
+        with:
+          server: ${{ env.CAPROVER_SERVER }}
+          app: ${{ env.CAPROVER_APP }}
+          token: ${{ env.CAPROVER_TOKEN }}
