@@ -4,6 +4,7 @@ name: Deploy
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,42 +12,29 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Load secrets from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CAPROVER_SERVER: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CAPROVER-SERVER
+          CAPROVER_URL: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CAPROVER-SERVER
+          CAPROVER_PASSWORD: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CAPROVER-PASSWORD
           CAPROVER_APP: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CAPROVER-APP
-          CAPROVER_TOKEN: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CAPROVER-TOKEN
           DATABASE_URL: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/DATABASE_URL
           BETTER_AUTH_SECRET: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/BETTER_AUTH_SECRET
           BETTER_AUTH_URL: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/BETTER_AUTH_URL
           SUPERADMIN_EMAIL: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/SUPERADMIN_EMAIL
           SUPERADMIN_PASSWORD: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/SUPERADMIN_PASSWORD
           CRON_SECRET: op://gtify7esp5ovvvzyekun4zxgya/craftparts-monitor-dev/CRON_SECRET
-
-      - name: Update CapRover env vars
-        run: |
-          curl -s -X POST \
-            "$CAPROVER_SERVER/api/v2/user/apps/appDefinitions/update" \
-            -H "x-captain-auth: $CAPROVER_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "appName": "'"$CAPROVER_APP"'",
-              "envVars": [
-                {"key": "DATABASE_URL", "value": "'"$DATABASE_URL"'"},
-                {"key": "BETTER_AUTH_SECRET", "value": "'"$BETTER_AUTH_SECRET"'"},
-                {"key": "BETTER_AUTH_URL", "value": "'"$BETTER_AUTH_URL"'"},
-                {"key": "SUPERADMIN_EMAIL", "value": "'"$SUPERADMIN_EMAIL"'"},
-                {"key": "SUPERADMIN_PASSWORD", "value": "'"$SUPERADMIN_PASSWORD"'"},
-                {"key": "CRON_SECRET", "value": "'"$CRON_SECRET"'"}
-              ]
-            }'
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -62,11 +50,43 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }},ghcr.io/${{ github.repository }}:latest
 
+      - name: Update CapRover env vars
+        run: |
+          # Login to get JWT
+          TOKEN=$(curl -s -X POST "$CAPROVER_URL/api/v2/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"password\":\"$CAPROVER_PASSWORD\"}" \
+            | jq -r '.data.token')
+
+          # Update env vars using JWT
+          curl -s -X POST "$CAPROVER_URL/api/v2/user/apps/appDefinitions/update" \
+            -H "x-captain-auth: $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg app "$CAPROVER_APP" \
+              --arg db "$DATABASE_URL" \
+              --arg secret "$BETTER_AUTH_SECRET" \
+              --arg url "$BETTER_AUTH_URL" \
+              --arg email "$SUPERADMIN_EMAIL" \
+              --arg pass "$SUPERADMIN_PASSWORD" \
+              --arg cron "$CRON_SECRET" \
+              '{
+                appName: $app,
+                envVars: [
+                  {key: "DATABASE_URL", value: $db},
+                  {key: "BETTER_AUTH_SECRET", value: $secret},
+                  {key: "BETTER_AUTH_URL", value: $url},
+                  {key: "SUPERADMIN_EMAIL", value: $email},
+                  {key: "SUPERADMIN_PASSWORD", value: $pass},
+                  {key: "CRON_SECRET", value: $cron}
+                ]
+              }')"
+
       - name: Deploy image to CapRover
         run: |
           npm install -g caprover
           caprover deploy \
-            --caproverUrl "$CAPROVER_SERVER" \
-            --appToken "$CAPROVER_TOKEN" \
+            --caproverUrl "$CAPROVER_URL" \
+            --caproverPassword "$CAPROVER_PASSWORD" \
             --appName "$CAPROVER_APP" \
             --imageName "ghcr.io/${{ github.repository }}:${{ github.sha }}"
